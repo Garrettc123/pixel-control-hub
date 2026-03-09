@@ -1,0 +1,32 @@
+name: Multi Repo Sync
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [sync-request]
+
+jobs:
+  sync-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target repository
+        uses: actions/checkout@v3
+
+      - name: Checkout source repository
+        uses: actions/checkout@v3
+        with:
+          repository: Garrettc123/nwu-protocol
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          path: source-repo
+
+      - name: Sync selected files
+        run: |
+          rsync -av --delete source-repo/ ./ # Replace with paths to sync
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: sync from nwu-protocol"
+          git push
