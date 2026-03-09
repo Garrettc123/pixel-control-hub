@@ -1,0 +1,29 @@
+name: Cross Repo Issue Tracker
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [issue-track]
+  issues:
+    types: [opened]
+
+jobs:
+  create-tracking-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create tracking issue in pixel-control-hub
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const repo = `${{ github.repository }}`;
+            const issue = context.payload.issue;
+            const targetRepo = 'Garrettc123/pixel-control-hub';
+            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
+            await octokit.rest.issues.create({
+              owner: targetRepo.split('/')[0],
+              repo: targetRepo.split('/')[1],
+              title: `Tracking: ${issue.title}`,
+              body: `An issue has been opened in ${repo}.\n\nOriginal issue: ${issue.html_url}`
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
